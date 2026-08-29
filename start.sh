@@ -11,7 +11,7 @@ echo ""
 echo "  BOT HOST v1.0.0"
 echo ""
 
-pip install flask requests psutil
+pip install flask requests
 
 mkdir -p projects logs
 
