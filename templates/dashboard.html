@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold">Dashboard</h1>
+    <p class="text-zinc-500 text-sm mt-1">Manage your bots</p>
+</div>
+
+<div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="stat-card">
+        <div class="stat-value" id="stat-cpu">--%</div>
+        <div class="stat-label">CPU</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="stat-ram">--MB</div>
+        <div class="stat-label">RAM Used</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="stat-disk">--GB</div>
+        <div class="stat-label">Disk Used</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="stat-bots">0/0</div>
+        <div class="stat-label">Bots Running</div>
+    </div>
+</div>
+
+{% if projects %}
+<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    {% for project in projects %}
+    <div class="card" data-project-id="{{ project.id }}">
+        <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <div class="status-dot status-{{ project.status_info.status if project.status_info else 'stopped' }}"></div>
+                <h3 class="font-semibold text-zinc-100">{{ project.name }}</h3>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                {{ project.runtime }}
+            </span>
+        </div>
+
+        <div class="text-xs text-zinc-500 mb-3 font-mono">
+            {{ project.main_file }}
+            {% if project.repo_url %}
+            <span class="text-zinc-600">|</span>
+            <a href="{{ project.repo_url }}" target="_blank" class="text-accent hover:underline">repo</a>
+            {% endif %}
+        </div>
+
+        {% if project.status_info and project.status_info.status == 'running' %}
+        <div class="flex gap-2 text-[11px] text-zinc-500 mb-3 font-mono">
+            <span>CPU {{ project.status_info.cpu }}%</span>
+            <span>|</span>
+            <span>RAM {{ project.status_info.memory_mb }}MB</span>
+            <span>|</span>
+            <span>PID {{ project.status_info.pid }}</span>
+        </div>
+        {% endif %}
+
+        <div class="flex flex-wrap gap-2">
+            {% if project.status_info.status != 'running' %}
+            <button onclick="botAction({{ project.id }}, 'start')" class="btn-primary text-xs py-1.5 px-3">
+                Start
+            </button>
+            {% else %}
+            <button onclick="botAction({{ project.id }}, 'stop')" class="btn-secondary text-xs py-1.5 px-3">
+                Stop
+            </button>
+            <button onclick="botAction({{ project.id }}, 'restart')" class="btn-secondary text-xs py-1.5 px-3">
+                Restart
+            </button>
+            {% endif %}
+
+            <a href="/editor/{{ project.id }}" class="btn-ghost text-xs py-1.5">Edit</a>
+            <a href="/logs/{{ project.id }}" class="btn-ghost text-xs py-1.5">Logs</a>
+            <a href="/env/{{ project.id }}" class="btn-ghost text-xs py-1.5">Env</a>
+
+            <button onclick="deleteBot({{ project.id }}, '{{ project.name }}')" class="btn-ghost text-xs py-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-auto">
+                Delete
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">&#x1F916;</div>
+    <h3 class="text-lg font-medium text-zinc-300 mb-2">No bots yet</h3>
+    <p class="text-zinc-500 text-sm mb-4">Create your first bot or import from GitHub</p>
+    <a href="/create" class="btn-primary">+ Create Bot</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/app.js"></script>
+{% endblock %}

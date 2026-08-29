@@ -1,0 +1,29 @@
+<div id="telegram-popup" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-dark-surface border border-dark-border rounded-2xl p-6 max-w-sm w-full shadow-2xl fade-in">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold">Join Our Telegram</h3>
+            </div>
+            <button id="popup-close" class="text-zinc-500 hover:text-zinc-300 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <p class="text-zinc-400 text-sm mb-5">
+            Stay updated with the latest features, updates, and support from OXYCODE community.
+        </p>
+        <a id="popup-join" href="https://t.me/OXYCODEAI" target="_blank" class="block w-full text-center bg-accent hover:bg-blue-600 text-white font-medium py-2.5 rounded-lg transition-colors mb-3">
+            Join @OXYCODEAI
+        </a>
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="dont-show-again" class="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-accent focus:ring-accent/30">
+            <span class="text-xs text-zinc-500">Don't show again</span>
+        </label>
+    </div>
+</div>

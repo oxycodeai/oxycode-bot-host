@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Environment - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+            <a href="/" class="text-zinc-500 hover:text-zinc-300 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-lg font-semibold">{{ project.name }} - Environment</h1>
+                <p class="text-xs text-zinc-500">Edit your .env file</p>
+            </div>
+        </div>
+        <a href="/editor/{{ project.id }}" class="btn-ghost text-sm">Code Editor</a>
+    </div>
+
+    <div class="card">
+        <form method="POST">
+            <div class="mb-3">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-sm font-medium text-zinc-300">.env file</label>
+                    <span class="text-[10px] text-zinc-600 font-mono">KEY=VALUE format</span>
+                </div>
+                <textarea name="content" rows="16"
+                    class="input-field font-mono text-sm resize-y"
+                    placeholder="BOT_TOKEN=your_token_here&#10;API_KEY=your_api_key&#10;DATABASE_URL=sqlite:///data.db"
+                    spellcheck="false">{{ content }}</textarea>
+            </div>
+
+            <div class="bg-zinc-900/50 border border-dark-border rounded-lg p-3 mb-4">
+                <p class="text-xs text-zinc-500">
+                    <span class="text-accent">Note:</span> Restart your bot after changing environment variables.
+                    One key per line, format: <code class="text-zinc-400">KEY=value</code>
+                </p>
+            </div>
+
+            <div class="flex gap-3">
+                <a href="/" class="btn-secondary flex-1 text-center">Cancel</a>
+                <button type="submit" class="btn-primary flex-1">Save Environment</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

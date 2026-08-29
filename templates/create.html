@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{% if editing %}Edit Bot{% else %}Create Bot{% endif %} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="mb-6">
+        <a href="/" class="text-sm text-zinc-500 hover:text-zinc-300 transition-colors">&larr; Back to Dashboard</a>
+        <h1 class="text-2xl font-bold mt-2">{% if editing %}Edit Bot{% else %}Create Bot{% endif %}</h1>
+    </div>
+
+    {% if error %}
+    <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-4 text-red-400 text-sm">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <form method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-zinc-300 mb-1.5">Bot Name</label>
+                <input type="text" name="name" value="{{ project.name if project else '' }}"
+                       class="input-field" placeholder="my-awesome-bot" required
+                       pattern="[a-zA-Z0-9_-]+"
+                       {% if editing %}readonly{% endif %}>
+                <p class="text-xs text-zinc-600 mt-1">Letters, numbers, - and _ only</p>
+            </div>
+
+            {% if not editing %}
+            <div>
+                <label class="block text-sm font-medium text-zinc-300 mb-1.5">GitHub Repository URL <span class="text-zinc-600">(optional)</span></label>
+                <input type="url" name="repo_url" value="{{ project.repo_url if project else '' }}"
+                       class="input-field" placeholder="https://github.com/user/repo">
+                <p class="text-xs text-zinc-600 mt-1">Leave empty for a blank Python bot</p>
+            </div>
+            {% endif %}
+
+            {% if not editing %}
+            <div class="bg-zinc-900/50 border border-dark-border rounded-lg p-3">
+                <p class="text-xs text-zinc-500">
+                    <span class="text-accent">Auto-detect:</span> Runtime (Python/Node.js) and dependencies
+                    will be detected from your repository.
+                </p>
+            </div>
+            {% endif %}
+
+            <div class="flex gap-3 pt-2">
+                <a href="/" class="btn-secondary flex-1 text-center">Cancel</a>
+                <button type="submit" class="btn-primary flex-1">
+                    {% if editing %}Save Changes{% else %}Create Bot{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
