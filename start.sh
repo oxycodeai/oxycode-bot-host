@@ -9,33 +9,16 @@ echo "  ╚██████╔╝██║  ██║╚██████╔�
 echo "   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚══════╝"
 echo ""
 echo "  BOT HOST 👾 v1.0.0"
-echo "  Lightweight bot hosting for Termux"
 echo ""
 
-cd "$(dirname "$0")"
+pkg update -y > /dev/null 2>&1
+pkg install python -y > /dev/null 2>&1
 
-if ! command -v python &> /dev/null; then
-    echo "[!] Python not found. Installing..."
-    pkg update -y && pkg install python -y
-fi
-
-if [ ! -d "venv" ]; then
-    echo "[*] Creating virtual environment..."
-    python -m venv venv
-fi
-
-source venv/bin/activate
-
-if [ ! -f "venv/.deps_installed" ]; then
-    echo "[*] Installing dependencies..."
-    pip install -r requirements.txt
-    touch venv/.deps_installed
-fi
+pip install flask requests psutil > /dev/null 2>&1
 
 mkdir -p projects logs
 
-echo "[*] Starting OXYCODE BOT HOST on http://127.0.0.1:5000"
-echo "[*] Press Ctrl+C to stop"
+echo "[*] Starting on http://127.0.0.1:5000"
 echo ""
 
 python app.py
