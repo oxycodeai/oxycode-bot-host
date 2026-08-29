@@ -1,6 +1,6 @@
 import os
 import json
-import psutil
+import subprocess
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 from config import (
     APP_NAME, APP_VERSION, PORT, HOST, PROJECTS_DIR, LOGS_DIR,
@@ -298,21 +298,53 @@ def env_editor(project_id):
 
 @app.route("/api/stats")
 def system_stats():
-    cpu = psutil.cpu_percent(interval=0.5)
-    mem = psutil.virtual_memory()
-    disk = psutil.disk_usage("/")
+    cpu = 0
+    try:
+        with open("/proc/stat") as f:
+            line = f.readline()
+            vals = list(map(int, line.split()[1:]))
+            idle = vals[3]
+            total = sum(vals)
+            cpu = round((1 - idle / total) * 100, 1) if total > 0 else 0
+    except:
+        pass
+
+    mem_used = 0
+    mem_total = 0
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith("MemTotal:"):
+                    mem_total = int(line.split()[1])
+                elif line.startswith("MemAvailable:"):
+                    mem_available = int(line.split()[1])
+                    mem_used = mem_total - mem_available
+    except:
+        pass
+
+    disk_used = 0
+    disk_total = 0
+    try:
+        result = subprocess.run(["df", "-B1", "/"], capture_output=True, text=True)
+        lines = result.stdout.strip().split("\n")
+        if len(lines) > 1:
+            parts = lines[1].split()
+            disk_total = int(parts[1])
+            disk_used = int(parts[2])
+    except:
+        pass
 
     projects = get_all_projects()
     running = sum(1 for p in projects if p["status"] == "running")
 
     return jsonify({
         "cpu_percent": cpu,
-        "memory_percent": mem.percent,
-        "memory_used_mb": round(mem.used / 1024 / 1024),
-        "memory_total_mb": round(mem.total / 1024 / 1024),
-        "disk_percent": disk.percent,
-        "disk_used_gb": round(disk.used / 1024 / 1024 / 1024, 1),
-        "disk_total_gb": round(disk.total / 1024 / 1024 / 1024, 1),
+        "memory_percent": round(mem_used / mem_total * 100, 1) if mem_total > 0 else 0,
+        "memory_used_mb": round(mem_used / 1024),
+        "memory_total_mb": round(mem_total / 1024),
+        "disk_percent": round(disk_used / disk_total * 100, 1) if disk_total > 0 else 0,
+        "disk_used_gb": round(disk_used / 1024 / 1024 / 1024, 1),
+        "disk_total_gb": round(disk_total / 1024 / 1024 / 1024, 1),
         "total_projects": len(projects),
         "running_bots": running
     })

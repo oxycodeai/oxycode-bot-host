@@ -1,10 +1,51 @@
 import subprocess
 import os
 import signal
-import psutil
 from datetime import datetime
 from config import PROJECTS_DIR, LOGS_DIR, RUNTIME_PYTHON, RUNTIME_NODE
-from database import update_project_status, get_project
+from database import update_project_status, get_project, get_all_projects
+
+
+def _pid_exists(pid):
+    return os.path.isdir(f"/proc/{pid}")
+
+
+def _kill_pid(pid):
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    except PermissionError:
+        try:
+            subprocess.run(["kill", "-9", str(pid)], capture_output=True)
+        except:
+            pass
+
+
+def _get_child_pids(pid):
+    children = []
+    try:
+        result = subprocess.run(
+            ["pgrep", "-P", str(pid)],
+            capture_output=True, text=True
+        )
+        for line in result.stdout.strip().split("\n"):
+            if line.strip():
+                children.append(int(line.strip()))
+    except:
+        pass
+    return children
+
+
+def _get_process_memory_kb(pid):
+    try:
+        with open(f"/proc/{pid}/status") as f:
+            for line in f:
+                if line.startswith("VmRSS:"):
+                    return int(line.split()[1])
+    except:
+        pass
+    return 0
 
 
 def start_bot(project_id):
@@ -12,7 +53,7 @@ def start_bot(project_id):
     if not project:
         return False, "Project not found"
 
-    if project["status"] == "running":
+    if project["status"] == "running" and _pid_exists(project["pid"]):
         return False, "Bot is already running"
 
     project_dir = os.path.join(PROJECTS_DIR, project["name"])
@@ -39,7 +80,7 @@ def start_bot(project_id):
                 stdout=f,
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.DEVNULL,
-                creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0),
+                start_new_session=True,
             )
 
         update_project_status(project_id, "running", process.pid)
@@ -60,23 +101,22 @@ def stop_bot(project_id):
         return False, "Bot is not running"
 
     pid = project["pid"]
-    try:
-        parent = psutil.Process(pid)
-        children = parent.children(recursive=True)
-        for child in children:
-            child.kill()
-        parent.kill()
-        update_project_status(project_id, "stopped", 0)
-        return True, "Bot stopped"
-    except psutil.NoSuchProcess:
+    if not _pid_exists(pid):
         update_project_status(project_id, "stopped", 0)
         return True, "Bot was not running (stale PID cleared)"
+
+    try:
+        for child in _get_child_pids(pid):
+            _kill_pid(child)
+        _kill_pid(pid)
+        update_project_status(project_id, "stopped", 0)
+        return True, "Bot stopped"
     except Exception as e:
         return False, str(e)
 
 
 def restart_bot(project_id):
-    stop_result, stop_msg = stop_bot(project_id)
+    stop_bot(project_id)
     import time
     time.sleep(1)
     return start_bot(project_id)
@@ -89,39 +129,24 @@ def get_bot_status(project_id):
 
     pid = project["pid"]
     if pid and project["status"] == "running":
-        try:
-            p = psutil.Process(pid)
-            if p.is_running():
-                cpu = p.cpu_percent(interval=0.1)
-                mem = p.memory_info().rss / 1024 / 1024
-                return {
-                    "status": "running",
-                    "pid": pid,
-                    "cpu": round(cpu, 1),
-                    "memory_mb": round(mem, 2),
-                    "uptime": datetime.fromtimestamp(p.create_time()).isoformat()
-                }
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            pass
-
-        update_project_status(project_id, "stopped", 0)
-        return {"status": "stopped", "pid": 0, "cpu": 0, "memory_mb": 0}
+        if _pid_exists(pid):
+            mem_kb = _get_process_memory_kb(pid)
+            return {
+                "status": "running",
+                "pid": pid,
+                "cpu": 0,
+                "memory_mb": round(mem_kb / 1024, 2),
+            }
+        else:
+            update_project_status(project_id, "stopped", 0)
+            return {"status": "stopped", "pid": 0, "cpu": 0, "memory_mb": 0}
 
     return {"status": "stopped", "pid": 0, "cpu": 0, "memory_mb": 0}
 
 
 def cleanup_stale_processes():
-    projects = get_all_projects_stale()
+    projects = get_all_projects()
     for project in projects:
         if project["status"] == "running" and project["pid"]:
-            try:
-                p = psutil.Process(project["pid"])
-                if not p.is_running():
-                    update_project_status(project["id"], "stopped", 0)
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
+            if not _pid_exists(project["pid"]):
                 update_project_status(project["id"], "stopped", 0)
-
-
-def get_all_projects_stale():
-    from database import get_all_projects
-    return get_all_projects()
