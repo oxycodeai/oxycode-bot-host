@@ -11,12 +11,17 @@
 ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
 
+/* === Base Text Colors === */
+body { color: #e4e4e7; }
+h1, h2, h3, h4, h5, h6 { color: #f4f4f5; }
+p, span, label, div { color: inherit; }
+
 /* === Navigation === */
 .nav-bar {
-    background: rgba(10, 10, 11, 0.85);
+    background: rgba(10, 10, 11, 0.9);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .safe-bottom {
@@ -25,87 +30,179 @@
 
 /* === Buttons === */
 .btn-create {
-    @apply flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-3 py-2 rounded-lg transition-all duration-150 active:scale-95;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    @apply flex items-center gap-1.5 text-sm font-medium px-4 py-2.5 rounded-xl transition-all duration-150;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .btn-create:hover {
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-create:active {
+    transform: translateY(0);
 }
 
 .btn-primary {
-    @apply flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-all duration-150 active:scale-[0.97];
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    @apply flex items-center justify-center gap-2 text-sm font-medium px-5 py-3 rounded-xl transition-all duration-150;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .btn-secondary {
-    @apply flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-zinc-200 text-sm font-medium px-4 py-2.5 rounded-xl border border-white/5 transition-all duration-150 active:scale-[0.97];
+    @apply flex items-center justify-center gap-2 text-sm font-medium px-5 py-3 rounded-xl border transition-all duration-150;
+    background: rgba(255, 255, 255, 0.05);
+    color: #d4d4d8;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .btn-danger {
-    @apply flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl border border-red-500/10 transition-all duration-150 active:scale-[0.97];
+    @apply flex items-center justify-center gap-2 text-sm font-medium px-5 py-3 rounded-xl border transition-all duration-150;
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.3);
 }
 
 .btn-ghost {
-    @apply flex items-center justify-center gap-2 text-zinc-400 hover:text-white hover:bg-white/5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-150;
+    @apply flex items-center justify-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-150;
+    color: #a1a1aa;
 }
 
-.btn-icon {
-    @apply flex items-center justify-center w-9 h-9 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-all duration-150 active:scale-95;
+.btn-ghost:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
 }
 
-.btn-icon-sm {
-    @apply flex items-center justify-center w-8 h-8 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all duration-150 text-xs;
-}
-
-/* === Action Buttons with Icons === */
+/* === Action Buttons - Desktop === */
 .action-btn {
-    @apply flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all duration-150 active:scale-95;
+    @apply flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg transition-all duration-150;
+    min-height: 36px;
 }
 
 .action-start {
-    @apply bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/10;
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.action-start:hover {
+    background: rgba(34, 197, 94, 0.25);
+    border-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
 }
 
 .action-stop {
-    @apply bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10;
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.action-stop:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
 }
 
 .action-restart {
-    @apply bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/10;
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.action-restart:hover {
+    background: rgba(245, 158, 11, 0.25);
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
 }
 
 .action-edit {
-    @apply bg-white/5 text-zinc-300 hover:bg-white/10 border border-white/5;
+    background: rgba(255, 255, 255, 0.08);
+    color: #e4e4e7;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-edit:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .action-logs {
-    @apply bg-white/5 text-zinc-300 hover:bg-white/10 border border-white/5;
+    background: rgba(59, 130, 246, 0.1);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.action-logs:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
 }
 
 .action-delete {
-    @apply bg-white/5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-white/5 hover:border-red-500/10;
+    background: rgba(255, 255, 255, 0.05);
+    color: #71717a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.action-delete:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.25);
 }
 
 /* === Cards === */
 .card {
-    @apply bg-[#111113] border border-white/[0.04] rounded-2xl transition-all duration-200;
+    background: #111113;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    transition: all 0.2s ease;
 }
 
 .card:hover {
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .card-glow {
-    @apply bg-[#111113] border border-white/[0.04] rounded-2xl;
-    box-shadow: 0 0 0 0 transparent;
+    background: #111113;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
     transition: all 0.3s ease;
 }
 
 .card-glow:hover {
-    border-color: rgba(59, 130, 246, 0.2);
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.05);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.08);
 }
 
 /* === Status Indicators === */
@@ -118,7 +215,7 @@
 
 .status-running {
     background: #22c55e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
     animation: pulse-green 2s infinite;
 }
 
@@ -132,19 +229,25 @@
 }
 
 .status-badge {
-    @apply inline-flex items-center gap-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wider;
+    @apply inline-flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full uppercase tracking-wider;
 }
 
 .badge-running {
-    @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .badge-stopped {
-    @apply bg-zinc-500/10 text-zinc-500 border border-zinc-500/20;
+    background: rgba(113, 113, 122, 0.15);
+    color: #a1a1aa;
+    border: 1px solid rgba(113, 113, 122, 0.2);
 }
 
 .badge-starting {
-    @apply bg-amber-500/10 text-amber-400 border border-amber-500/20;
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 @keyframes pulse-green {
@@ -159,46 +262,71 @@
 
 /* === Inputs === */
 .input-field {
-    @apply w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-200 text-sm;
+    @apply w-full rounded-xl px-4 py-3 transition-all duration-200 text-sm;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f4f4f5;
+}
+
+.input-field::placeholder {
+    color: #52525b;
 }
 
 .input-field:focus {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+    border-color: rgba(59, 130, 246, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .input-label {
-    @apply block text-sm font-medium text-zinc-300 mb-2;
+    @apply block text-sm font-medium mb-2;
+    color: #d4d4d8;
 }
 
 .input-hint {
-    @apply text-xs text-zinc-600 mt-1.5;
+    @apply text-xs mt-1.5;
+    color: #71717a;
 }
 
 /* === Stat Cards === */
 .stat-card {
-    @apply bg-[#111113] border border-white/[0.04] rounded-xl p-4;
+    background: #111113;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1rem;
 }
 
 .stat-value {
-    @apply text-xl font-bold text-zinc-100 font-mono tracking-tight;
+    @apply text-xl font-bold font-mono tracking-tight;
+    color: #f4f4f5;
 }
 
 .stat-label {
-    @apply text-[11px] text-zinc-500 uppercase tracking-wider mt-1 font-medium;
+    @apply text-[11px] uppercase tracking-wider mt-1 font-medium;
+    color: #71717a;
 }
 
 /* === Tabs === */
 .tab-group {
-    @apply flex gap-1 p-1 bg-white/[0.03] rounded-xl border border-white/[0.04];
+    @apply flex gap-1 p-1 rounded-xl;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .tab-item {
-    @apply flex-1 flex items-center justify-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-300 px-4 py-2.5 rounded-lg transition-all duration-200;
+    @apply flex-1 flex items-center justify-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg transition-all duration-200;
+    color: #71717a;
+}
+
+.tab-item:hover {
+    color: #d4d4d8;
 }
 
 .tab-item.active {
-    @apply bg-white/[0.06] text-zinc-100;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: #f4f4f5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* === Empty State === */
@@ -212,26 +340,46 @@
     font-size: 12px;
     line-height: 1.7;
     background: #0a0a0b;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 1rem;
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-all;
-    color: #71717a;
+    color: #a1a1aa;
     height: calc(100vh - 200px);
     min-height: 300px;
 }
 
 /* === Toast === */
 .toast {
-    @apply fixed bottom-20 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-auto bg-[#18181b] border border-white/[0.06] rounded-xl px-4 py-3 text-sm z-[60] shadow-2xl;
+    @apply fixed left-4 right-4 sm:left-auto sm:right-6 sm:w-auto rounded-xl px-4 py-3 text-sm z-[60] shadow-2xl;
+    bottom: 80px;
+    background: #18181b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.toast-success { @apply border-emerald-500/20 text-emerald-400; }
-.toast-error { @apply border-red-500/20 text-red-400; }
-.toast-info { @apply border-blue-500/20 text-blue-400; }
+@media (min-width: 640px) {
+    .toast {
+        bottom: 24px;
+    }
+}
+
+.toast-success {
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+}
+
+.toast-error {
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+.toast-info {
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+}
 
 @keyframes slideUp {
     from { transform: translateY(100%); opacity: 0; }
@@ -255,33 +403,136 @@
     }
 
     .card {
-        @apply rounded-xl;
+        border-radius: 12px;
     }
 
     .action-btn {
-        @apply px-2 py-1.5 text-[11px];
+        @apply px-2.5 py-2 text-[11px];
+        min-height: 40px;
     }
 }
 
 /* === Bottom Nav === */
 .bottom-nav-item {
-    @apply flex flex-col items-center gap-0.5 text-[10px] text-zinc-500 py-1 px-3 rounded-lg transition-colors;
+    @apply flex flex-col items-center gap-0.5 text-[10px] py-1 px-3 rounded-lg transition-colors;
+    color: #71717a;
 }
 
 .bottom-nav-item.active {
-    @apply text-blue-400;
+    color: #60a5fa;
 }
 
 .bottom-nav-item:hover {
-    @apply text-zinc-300;
+    color: #d4d4d8;
 }
 
 /* === Editor Fullscreen === */
 .editor-fullscreen {
-    @apply fixed inset-0 z-[100] bg-[#0a0a0b];
+    @apply fixed inset-0 z-[100];
+    background: #0a0a0b;
 }
 
 /* === Skeleton Loading === */
 .skeleton {
-    @apply bg-white/[0.03] rounded-lg animate-pulse;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* === Upload Dropzone === */
+.upload-dropzone {
+    @apply relative rounded-xl p-8 text-center transition-all duration-200 cursor-pointer;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+}
+
+.upload-dropzone:hover {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.upload-dropzone.dragover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+}
+
+.upload-dropzone input[type="file"] {
+    @apply absolute inset-0 w-full h-full opacity-0 cursor-pointer;
+}
+
+/* === File List === */
+.file-item-upload {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.file-item-upload:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* === Icon Button === */
+.btn-icon {
+    @apply flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-150;
+    color: #a1a1aa;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-icon:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* === Mobile Menu === */
+.mobile-menu-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors;
+    color: #a1a1aa;
+}
+
+.mobile-menu-item:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* === Select Field === */
+select.input-field {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+/* === Textarea === */
+textarea.input-field {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* === Disabled State === */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* === Link Colors === */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* === Mobile Bottom Safe Area === */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .bottom-nav {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
 }

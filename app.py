@@ -100,6 +100,71 @@ def create():
             create_project(name, "", runtime, main_file)
             return redirect(url_for("dashboard"))
 
+        # File upload
+        uploaded_files = request.files.getlist("files")
+        if uploaded_files and uploaded_files[0].filename:
+            runtime = request.form.get("upload_runtime", "python")
+            os.makedirs(project_dir, exist_ok=True)
+
+            main_file = None
+            saved_files = []
+
+            ALLOWED_UPLOAD_EXT = {'.py', '.js', '.ts', '.json', '.txt', '.env', '.yml', '.yaml', '.toml', '.cfg', '.ini', '.sh'}
+
+            for f in uploaded_files:
+                if not f.filename:
+                    continue
+                filename = os.path.basename(f.filename)
+                ext = os.path.splitext(filename)[1].lower()
+
+                if ext == '.zip':
+                    import zipfile
+                    import tempfile
+                    with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
+                        f.save(tmp.name)
+                        tmp_path = tmp.name
+                    try:
+                        with zipfile.ZipFile(tmp_path, 'r') as zip_ref:
+                            zip_ref.extractall(project_dir)
+                        saved_files.append(filename)
+                    except zipfile.BadZipFile:
+                        os.unlink(tmp_path)
+                        import shutil
+                        shutil.rmtree(project_dir, ignore_errors=True)
+                        return render_template("create.html", error="Invalid zip file")
+                    finally:
+                        os.unlink(tmp_path)
+                elif ext in ALLOWED_UPLOAD_EXT:
+                    filepath = os.path.join(project_dir, filename)
+                    f.save(filepath)
+                    saved_files.append(filename)
+
+                    if not main_file:
+                        if runtime == "python" and ext == '.py':
+                            main_file = filename
+                        elif runtime == "node" and ext == '.js':
+                            main_file = filename
+
+            if not main_file:
+                if runtime == "python":
+                    main_file = "main.py"
+                else:
+                    main_file = "index.js"
+
+            if runtime == "python":
+                req_path = os.path.join(project_dir, "requirements.txt")
+                if not os.path.exists(req_path):
+                    with open(req_path, "w") as rf:
+                        rf.write("# Add your Python dependencies here\n")
+            else:
+                pkg_path = os.path.join(project_dir, "package.json")
+                if not os.path.exists(pkg_path):
+                    with open(pkg_path, "w") as pf:
+                        json.dump({"name": name, "version": "1.0.0", "main": main_file}, pf, indent=2)
+
+            create_project(name, "", runtime, main_file)
+            return redirect(url_for("dashboard"))
+
         # Blank project
         runtime = request.form.get("blank_runtime", "python")
         os.makedirs(project_dir, exist_ok=True)

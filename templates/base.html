@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     {% block head %}{% endblock %}
 </head>
-<body class="bg-[#0a0a0b] text-zinc-100 min-h-screen font-sans antialiased">
+<body style="background: #09090b; color: #e4e4e7; min-height: 100vh;" class="font-sans antialiased">
     <!-- Telegram Popup -->
     {% include 'components/popup.html' %}
 
@@ -35,27 +35,27 @@
         <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <!-- Mobile Menu Button -->
-                <button onclick="toggleMobileMenu()" class="sm:hidden p-2 -ml-2 text-zinc-400 hover:text-white">
+                <button onclick="toggleMobileMenu()" class="sm:hidden btn-icon" style="min-width: 40px; min-height: 40px;">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
                 <a href="/" class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">
                         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                         </svg>
                     </div>
-                    <span class="font-bold text-base tracking-tight hidden sm:block">
-                        OXYCODE <span class="text-blue-400">HOST</span>
+                    <span class="font-bold text-base tracking-tight hidden sm:block" style="color: #f4f4f5;">
+                        OXYCODE <span style="color: #60a5fa;">HOST</span>
                     </span>
                 </a>
             </div>
 
             <div class="flex items-center gap-2">
                 <!-- User Info -->
-                <div class="hidden sm:flex items-center gap-2 text-xs text-zinc-500 bg-zinc-900/50 px-3 py-1.5 rounded-lg">
-                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <div class="hidden sm:flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg" style="color: #a1a1aa; background: rgba(255, 255, 255, 0.03);">
+                    <div class="w-2 h-2 rounded-full" style="background: #22c55e; animation: pulse-green 2s infinite;"></div>
                     <span id="user-name">{{ user_name }}</span>
                 </div>
 
@@ -70,16 +70,18 @@
         </div>
 
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden sm:hidden border-t border-white/5 px-4 py-3 space-y-1">
-            <a href="/" class="mobile-menu-item">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                </svg>
-                Dashboard
-            </a>
-            <div class="flex items-center gap-2 px-3 py-2 text-xs text-zinc-500">
-                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span>{{ user_name }}</span>
+        <div id="mobile-menu" class="hidden sm:hidden" style="border-top: 1px solid rgba(255, 255, 255, 0.06);">
+            <div class="px-4 py-3 space-y-1">
+                <a href="/" class="mobile-menu-item">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    Dashboard
+                </a>
+                <div class="flex items-center gap-2 px-3 py-2.5 text-xs" style="color: #71717a;">
+                    <div class="w-2 h-2 rounded-full" style="background: #22c55e; animation: pulse-green 2s infinite;"></div>
+                    <span>{{ user_name }}</span>
+                </div>
             </div>
         </div>
     </nav>
@@ -90,7 +92,7 @@
     </main>
 
     <!-- Mobile Bottom Nav -->
-    <nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-[#0a0a0b]/95 backdrop-blur-xl border-t border-white/5 z-40 safe-bottom">
+    <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 safe-bottom" style="background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.06);">
         <div class="flex items-center justify-around h-14">
             <a href="/" class="bottom-nav-item {% if request.path == '/' %}active{% endif %}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
