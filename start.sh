@@ -8,16 +8,14 @@ echo "  ██║   ██║██╔══██╗██║   ██║ █�
 echo "  ╚██████╔╝██║  ██║╚██████╔╝██╔╝ ██╗██║███████╗███████║"
 echo "   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚══════╝"
 echo ""
-echo "  BOT HOST 👾 v1.0.0"
+echo "  BOT HOST v1.0.0"
 echo ""
 
-pkg update -y > /dev/null 2>&1
-pkg install python -y > /dev/null 2>&1
-
-pip install flask requests psutil > /dev/null 2>&1
+pip install flask requests psutil
 
 mkdir -p projects logs
 
+echo ""
 echo "[*] Starting on http://127.0.0.1:5000"
 echo ""
 
