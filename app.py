@@ -11,7 +11,7 @@ from config import (
     TELEGRAM_LINK, MAX_BOTS, MAX_UPLOAD_SIZE_MB, ALLOWED_EDIT_EXT, ENV_FILE, SECRET_KEY_FILE
 )
 from database import (
-    create_project, get_all_projects, get_project, update_project,
+    create_project, get_all_projects, get_project, get_project_by_name, update_project,
     delete_project, get_setting, set_setting
 )
 from process_manager import start_bot, stop_bot, restart_bot, get_bot_status, cleanup_stale_processes
@@ -85,8 +85,13 @@ def create():
             return render_template("create.html", error=f"Maximum {MAX_BOTS} bots reached")
 
         project_dir = os.path.join(PROJECTS_DIR, name)
-        if os.path.exists(project_dir):
+        if get_project_by_name(name):
             return render_template("create.html", error="A bot with this name already exists")
+
+        # Clean up orphaned directory if it exists but DB entry is gone
+        if os.path.exists(project_dir):
+            import shutil
+            shutil.rmtree(project_dir, ignore_errors=True)
 
         # GitHub import
         repo_url = request.form.get("repo_url", "").strip()
@@ -240,8 +245,13 @@ def api_deploy():
         return jsonify({"error": f"Maximum {MAX_BOTS} bots reached"}), 400
 
     project_dir = os.path.join(PROJECTS_DIR, name)
-    if os.path.exists(project_dir):
+    if get_project_by_name(name):
         return jsonify({"error": "A bot with this name already exists"}), 400
+
+    # Clean up orphaned directory if it exists but DB entry is gone
+    if os.path.exists(project_dir):
+        import shutil
+        shutil.rmtree(project_dir, ignore_errors=True)
 
     source_type = data.get("source_type", "paste")
 

@@ -34,6 +34,22 @@ def init_db():
     """)
     conn.execute("CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_projects_name ON projects(name)")
+
+    # Add missing columns to existing tables (migration)
+    cursor = conn.execute("PRAGMA table_info(projects)")
+    existing_cols = {row[1] for row in cursor.fetchall()}
+    migrations = {
+        "source_type": "ALTER TABLE projects ADD COLUMN source_type TEXT DEFAULT ''",
+        "error_message": "ALTER TABLE projects ADD COLUMN error_message TEXT DEFAULT ''",
+        "last_started": "ALTER TABLE projects ADD COLUMN last_started TEXT DEFAULT ''",
+        "last_stopped": "ALTER TABLE projects ADD COLUMN last_stopped TEXT DEFAULT ''",
+    }
+    for col, sql in migrations.items():
+        if col not in existing_cols:
+            try:
+                conn.execute(sql)
+            except:
+                pass
     conn.commit()
     conn.close()
 
@@ -63,6 +79,13 @@ def get_all_projects():
 def get_project(project_id):
     conn = _connect()
     row = conn.execute("SELECT * FROM projects WHERE id = ?", (project_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_project_by_name(name):
+    conn = _connect()
+    row = conn.execute("SELECT * FROM projects WHERE name = ?", (name,)).fetchone()
     conn.close()
     return dict(row) if row else None
 
