@@ -19,43 +19,35 @@ Lightweight bot hosting platform for Termux. Manage, monitor, and run Telegram a
 - **Mobile-First UI** - Dark theme, works great on phones
 - **Python + Node.js** - Supports both runtimes
 
-## Quick Start (Termux)
+---
 
-```bash
-# Install Termux from F-Droid (not Play Store)
+## Installation
 
-# Clone this repo
-git clone https://github.com/oxycodeai/oxycode-bot-host.git
-cd oxycode-bot-host
+**First Time Setup (run once):**
 
-# Run the start script
-bash start.sh
+```
+pkg update -y && pkg install git python -y && git clone https://github.com/oxycodeai/oxycode-bot-host.git && cd oxycode-bot-host && bash start.sh
+```
+
+**After Phone Off / Quick Start:**
+
+```
+cd ~/oxycode-bot-host && bash start.sh
 ```
 
 Then open `http://127.0.0.1:5000` in your browser.
 
-## Prerequisites
+---
 
-- [Termux](https://f-droid.org/en/packages/com.termux/) (from F-Droid)
-- Python 3.8+ (installed by start.sh)
-- Git (for cloning repos)
+## How It Works
 
-## Manual Setup
+1. Install [Termux](https://f-droid.org/en/packages/com.termux/) from F-Droid
+2. Paste the **First Time Setup** command in Termux
+3. Wait for installation to complete
+4. Open `http://127.0.0.1:5000` in your browser
+5. Create bots, import from GitHub, edit files, view logs
 
-```bash
-# Install Python
-pkg install python
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the app
-python app.py
-```
+---
 
 ## Usage
 
@@ -85,6 +77,8 @@ python app.py
 2. Logs auto-refresh every 3 seconds
 3. Toggle auto-scroll on/off
 
+---
+
 ## Configuration
 
 Edit `config.py` to change settings:
@@ -96,38 +90,13 @@ Edit `config.py` to change settings:
 | `MAX_BOTS` | 50 | Maximum number of bots |
 | `CLONE_TIMEOUT` | 120 | Git clone timeout (seconds) |
 
-## Project Structure
-
-```
-oxycode-bot-host/
-├── app.py              # Flask server
-├── config.py           # Configuration
-├── database.py         # SQLite operations
-├── process_manager.py  # Bot process management
-├── github_handler.py   # GitHub integration
-├── auto_installer.py   # Dependency installer
-├── requirements.txt    # Python dependencies
-├── start.sh           # Termux startup script
-├── static/
-│   ├── css/style.css   # Dark theme styles
-│   └── js/             # Frontend JavaScript
-├── templates/          # HTML templates
-└── projects/           # User bots (auto-created)
-```
+---
 
 ## Tech Stack
 
 - **Backend:** Python, Flask, SQLite
-- **Frontend:** Tailwind CSS, CodeMirror 6, Vanilla JS
+- **Frontend:** Tailwind CSS, CodeMirror, Vanilla JS
 - **Process:** subprocess, psutil
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test on Termux
-5. Submit a pull request
 
 ## License
 
@@ -136,7 +105,3 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Credits
 
 Built by [OXYCODE AI](https://t.me/OXYCODEAI)
-
----
-
-<p align="center">Made with care for the Termux community</p>
