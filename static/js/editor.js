@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
     editor.on('change', function() {
         if (!hasChanges) {
             hasChanges = true;
-            document.getElementById('save-btn').disabled = false;
+            const btn = document.getElementById('save-btn');
+            if (btn) btn.disabled = false;
             document.title = '* ' + document.title;
         }
     });
@@ -66,11 +67,12 @@ function openFile(filepath) {
     if (hasChanges && !confirm('Unsaved changes. Continue?')) return;
 
     currentFilePath = filepath;
-    document.getElementById('current-file-path').textContent = filepath;
+    const pathEl = document.getElementById('current-file-path');
+    if (pathEl) pathEl.textContent = filepath;
     document.title = filepath + ' - Editor';
 
     document.querySelectorAll('.file-item').forEach(el => {
-        el.classList.toggle('bg-zinc-800', el.dataset.path === filepath);
+        el.classList.toggle('bg-white/[0.06]', el.dataset.path === filepath);
         el.classList.toggle('text-zinc-100', el.dataset.path === filepath);
     });
 
@@ -82,25 +84,29 @@ function openFile(filepath) {
     .then(r => r.json())
     .then(data => {
         if (data.error) {
-            alert(data.error);
+            showToast(data.error, 'error');
             return;
         }
         editor.setValue(data.content);
         editor.setOption('mode', getMode(filepath));
         editor.clearHistory();
         hasChanges = false;
-        document.getElementById('save-btn').disabled = true;
+        const btn = document.getElementById('save-btn');
+        if (btn) btn.disabled = true;
         document.title = filepath + ' - Editor';
     })
-    .catch(() => alert('Failed to load file'));
+    .catch(() => showToast('Failed to load file', 'error'));
 }
 
 function saveFile() {
     if (!currentFilePath || !editor) return;
 
     const btn = document.getElementById('save-btn');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
+    const originalHTML = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>';
+    }
 
     fetch('/api/editor/save', {
         method: 'POST',
@@ -116,20 +122,48 @@ function saveFile() {
         if (data.success) {
             hasChanges = false;
             document.title = currentFilePath + ' - Editor';
-            btn.textContent = 'Saved!';
-            setTimeout(() => {
-                btn.textContent = 'Save';
-                btn.disabled = false;
-            }, 1500);
+            showToast('File saved', 'success');
+            if (btn) {
+                btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Saved';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                }, 1500);
+            }
         } else {
-            alert(data.error || 'Save failed');
-            btn.textContent = 'Save';
-            btn.disabled = false;
+            showToast(data.error || 'Save failed', 'error');
+            if (btn) {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
         }
     })
     .catch(() => {
-        alert('Connection error');
-        btn.textContent = 'Save';
-        btn.disabled = false;
+        showToast('Connection error', 'error');
+        if (btn) {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
     });
+}
+
+function showToast(message, type) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+
+    const icons = {
+        success: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+        error: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `<div class="flex items-center gap-2">${icons[type] || ''}<span>${message}</span></div>`;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }

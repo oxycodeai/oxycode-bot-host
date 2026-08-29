@@ -18,6 +18,19 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 
+def get_user_name():
+    try:
+        result = subprocess.run(["whoami"], capture_output=True, text=True, timeout=2)
+        return result.stdout.strip() or "user"
+    except:
+        return "user"
+
+
+@app.context_processor
+def inject_user():
+    return dict(user_name=get_user_name())
+
+
 @app.route("/")
 def dashboard():
     projects = get_all_projects()
@@ -31,10 +44,9 @@ def dashboard():
 def create():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        repo_url = request.form.get("repo_url", "").strip()
 
         if not name:
-            return render_template("create.html", error="Project name is required")
+            return render_template("create.html", error="Bot name is required")
 
         if not all(c.isalnum() or c in "-_" for c in name):
             return render_template("create.html", error="Name can only contain letters, numbers, - and _")
@@ -44,8 +56,10 @@ def create():
 
         project_dir = os.path.join(PROJECTS_DIR, name)
         if os.path.exists(project_dir):
-            return render_template("create.html", error="Project with this name already exists")
+            return render_template("create.html", error="A bot with this name already exists")
 
+        # GitHub import
+        repo_url = request.form.get("repo_url", "").strip()
         if repo_url:
             success, msg = clone_repo(repo_url, name)
             if not success:
@@ -55,22 +69,56 @@ def create():
             project_id = create_project(name, repo_url, runtime, main_file)
 
             deps = detect_dependencies(name)
+            warnings = []
             if deps[runtime]:
-                auto_install(name, runtime)
+                success, msg = auto_install(name, runtime)
+                if not success:
+                    warnings.append(msg)
 
             return redirect(url_for("dashboard"))
-        else:
+
+        # Paste code
+        code_content = request.form.get("code_content", "").strip()
+        if code_content:
+            runtime = request.form.get("runtime", "python")
             os.makedirs(project_dir, exist_ok=True)
+
+            if runtime == "python":
+                main_file = "main.py"
+                with open(os.path.join(project_dir, main_file), "w") as f:
+                    f.write(code_content)
+                if not any(line.startswith("import") or line.startswith("from") for line in code_content.split("\n") if line.strip()):
+                    with open(os.path.join(project_dir, "requirements.txt"), "w") as f:
+                        f.write("# Add your Python dependencies here\n")
+            else:
+                main_file = "index.js"
+                with open(os.path.join(project_dir, main_file), "w") as f:
+                    f.write(code_content)
+                with open(os.path.join(project_dir, "package.json"), "w") as f:
+                    json.dump({"name": name, "version": "1.0.0", "main": main_file}, f, indent=2)
+
+            create_project(name, "", runtime, main_file)
+            return redirect(url_for("dashboard"))
+
+        # Blank project
+        runtime = request.form.get("blank_runtime", "python")
+        os.makedirs(project_dir, exist_ok=True)
+
+        if runtime == "python":
             main_file = "main.py"
-            create_project(name, "", "python", main_file)
-
             with open(os.path.join(project_dir, main_file), "w") as f:
-                f.write("# Your bot code here\n")
-
+                f.write("# Your bot code here\n\nprint('Hello from OXYCODE BOT HOST!')\n")
             with open(os.path.join(project_dir, "requirements.txt"), "w") as f:
                 f.write("# Add your Python dependencies here\n")
+        else:
+            main_file = "index.js"
+            with open(os.path.join(project_dir, main_file), "w") as f:
+                f.write("// Your bot code here\n\nconsole.log('Hello from OXYCODE BOT HOST!');\n")
+            with open(os.path.join(project_dir, "package.json"), "w") as f:
+                json.dump({"name": name, "version": "1.0.0", "main": main_file}, f, indent=2)
 
-            return redirect(url_for("dashboard"))
+        create_project(name, "", runtime, main_file)
+        return redirect(url_for("dashboard"))
 
     return render_template("create.html")
 
@@ -121,7 +169,7 @@ def bot_delete(project_id):
         shutil.rmtree(log_dir, ignore_errors=True)
 
     delete_project(project_id)
-    return jsonify({"success": True, "message": "Project deleted"})
+    return jsonify({"success": True, "message": "Bot deleted"})
 
 
 @app.route("/bot/<int:project_id>/edit", methods=["GET", "POST"])
@@ -175,8 +223,11 @@ def editor(project_id, filepath=None):
             except:
                 content = ""
 
+    is_fullscreen = request.args.get("fullscreen") == "1"
+
     return render_template("editor.html", project=project, files=files,
-                           current_file=current_file, content=content)
+                           current_file=current_file, content=content,
+                           is_fullscreen=is_fullscreen)
 
 
 @app.route("/api/editor/save", methods=["POST"])

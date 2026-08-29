@@ -4,52 +4,129 @@
 {% block content %}
 <div class="max-w-lg mx-auto">
     <div class="mb-6">
-        <a href="/" class="text-sm text-zinc-500 hover:text-zinc-300 transition-colors">&larr; Back to Dashboard</a>
-        <h1 class="text-2xl font-bold mt-2">{% if editing %}Edit Bot{% else %}Create Bot{% endif %}</h1>
+        <a href="/" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-300 transition-colors mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back
+        </a>
+        <h1 class="text-xl font-bold tracking-tight">{% if editing %}Edit Bot{% else %}Create New Bot{% endif %}</h1>
     </div>
 
     {% if error %}
-    <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-4 text-red-400 text-sm">
-        {{ error }}
+    <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-red-400 text-sm">{{ error }}</span>
     </div>
     {% endif %}
 
-    <div class="card">
-        <form method="POST" class="space-y-4">
+    <div class="card p-5">
+        <form method="POST" id="create-form" enctype="multipart/form-data" class="space-y-5">
+            <!-- Bot Name -->
             <div>
-                <label class="block text-sm font-medium text-zinc-300 mb-1.5">Bot Name</label>
+                <label class="input-label">Bot Name</label>
                 <input type="text" name="name" value="{{ project.name if project else '' }}"
                        class="input-field" placeholder="my-awesome-bot" required
                        pattern="[a-zA-Z0-9_-]+"
                        {% if editing %}readonly{% endif %}>
-                <p class="text-xs text-zinc-600 mt-1">Letters, numbers, - and _ only</p>
+                <p class="input-hint">Letters, numbers, - and _ only</p>
             </div>
 
             {% if not editing %}
+            <!-- Source Type Tabs -->
             <div>
-                <label class="block text-sm font-medium text-zinc-300 mb-1.5">GitHub Repository URL <span class="text-zinc-600">(optional)</span></label>
-                <input type="url" name="repo_url" value="{{ project.repo_url if project else '' }}"
-                       class="input-field" placeholder="https://github.com/user/repo">
-                <p class="text-xs text-zinc-600 mt-1">Leave empty for a blank Python bot</p>
+                <label class="input-label">Source</label>
+                <div class="tab-group">
+                    <button type="button" onclick="switchTab('github')" class="tab-item active" id="tab-github">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                        </svg>
+                        GitHub
+                    </button>
+                    <button type="button" onclick="switchTab('paste')" class="tab-item" id="tab-paste">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Paste Code
+                    </button>
+                    <button type="button" onclick="switchTab('blank')" class="tab-item" id="tab-blank">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Blank
+                    </button>
+                </div>
+            </div>
+
+            <!-- GitHub Tab -->
+            <div id="content-github">
+                <label class="input-label">Repository URL</label>
+                <input type="url" name="repo_url" class="input-field" placeholder="https://github.com/user/repo"
+                       id="repo-url-input">
+                <p class="input-hint">Paste any public GitHub repo URL. Runtime and dependencies auto-detected.</p>
+            </div>
+
+            <!-- Paste Code Tab -->
+            <div id="content-paste" class="hidden">
+                <label class="input-label">Main File Code</label>
+                <textarea name="code_content" rows="10" class="input-field font-mono text-xs"
+                          placeholder="# Paste your bot code here..." id="code-paste-input"></textarea>
+                <p class="input-hint">Paste your main bot code. A requirements.txt will be created for you.</p>
+
+                <div class="mt-3">
+                    <label class="input-label">Runtime</label>
+                    <select name="runtime" class="input-field">
+                        <option value="python">Python</option>
+                        <option value="node">Node.js</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Blank Tab -->
+            <div id="content-blank" class="hidden">
+                <label class="input-label">Runtime</label>
+                <select name="blank_runtime" class="input-field">
+                    <option value="python">Python</option>
+                    <option value="node">Node.js</option>
+                </select>
+                <p class="input-hint">Creates a blank project with a starter file.</p>
             </div>
             {% endif %}
 
-            {% if not editing %}
-            <div class="bg-zinc-900/50 border border-dark-border rounded-lg p-3">
-                <p class="text-xs text-zinc-500">
-                    <span class="text-accent">Auto-detect:</span> Runtime (Python/Node.js) and dependencies
-                    will be detected from your repository.
-                </p>
-            </div>
-            {% endif %}
-
+            <!-- Submit -->
             <div class="flex gap-3 pt-2">
                 <a href="/" class="btn-secondary flex-1 text-center">Cancel</a>
                 <button type="submit" class="btn-primary flex-1">
-                    {% if editing %}Save Changes{% else %}Create Bot{% endif %}
+                    {% if editing %}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Save Changes
+                    {% else %}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Create Bot
+                    {% endif %}
                 </button>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchTab(tab) {
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+
+    document.getElementById('content-github').classList.add('hidden');
+    document.getElementById('content-paste').classList.add('hidden');
+    document.getElementById('content-blank').classList.add('hidden');
+    document.getElementById('content-' + tab).classList.remove('hidden');
+}
+</script>
 {% endblock %}

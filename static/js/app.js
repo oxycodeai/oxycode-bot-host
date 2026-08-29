@@ -1,24 +1,27 @@
 function botAction(id, action) {
-    const btn = event.target;
+    const btn = event.target.closest('button');
+    if (!btn) return;
+
+    const originalHTML = btn.innerHTML;
     btn.disabled = true;
-    btn.textContent = action === 'start' ? 'Starting...' : action === 'stop' ? 'Stopping...' : 'Restarting...';
+    btn.innerHTML = `<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>`;
 
     fetch(`/bot/${id}/${action}`, { method: 'POST' })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
                 showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 800);
+                setTimeout(() => location.reload(), 600);
             } else {
                 showToast(data.message, 'error');
                 btn.disabled = false;
-                btn.textContent = action.charAt(0).toUpperCase() + action.slice(1);
+                btn.innerHTML = originalHTML;
             }
         })
         .catch(() => {
             showToast('Connection error', 'error');
             btn.disabled = false;
-            btn.textContent = action.charAt(0).toUpperCase() + action.slice(1);
+            btn.innerHTML = originalHTML;
         });
 }
 
@@ -34,6 +37,7 @@ function deleteBot(id, name) {
                 if (card) {
                     card.style.opacity = '0';
                     card.style.transform = 'scale(0.95)';
+                    card.style.transition = 'all 0.2s ease';
                     setTimeout(() => card.remove(), 200);
                 }
             } else {
@@ -47,9 +51,15 @@ function showToast(message, type) {
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
 
+    const icons = {
+        success: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+        error: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+        info: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+    };
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.textContent = message;
+    toast.innerHTML = `<div class="flex items-center gap-2">${icons[type] || ''}<span>${message}</span></div>`;
     document.body.appendChild(toast);
 
     setTimeout(() => {
@@ -63,13 +73,20 @@ function fetchStats() {
     fetch('/api/stats')
         .then(r => r.json())
         .then(data => {
-            document.getElementById('stat-cpu').textContent = data.cpu_percent + '%';
-            document.getElementById('stat-ram').textContent = data.memory_used_mb + 'MB';
-            document.getElementById('stat-disk').textContent = data.disk_used_gb + 'GB';
-            document.getElementById('stat-bots').textContent = data.running_bots + '/' + data.total_projects;
+            const cpu = document.getElementById('stat-cpu');
+            const ram = document.getElementById('stat-ram');
+            const disk = document.getElementById('stat-disk');
+            const bots = document.getElementById('stat-bots');
+
+            if (cpu) cpu.textContent = data.cpu_percent + '%';
+            if (ram) ram.textContent = data.memory_used_mb + 'MB';
+            if (disk) disk.textContent = data.disk_used_gb + 'GB';
+            if (bots) bots.textContent = data.running_bots + '/' + data.total_projects;
         })
         .catch(() => {});
 }
 
-fetchStats();
-setInterval(fetchStats, 5000);
+if (document.getElementById('stat-cpu')) {
+    fetchStats();
+    setInterval(fetchStats, 5000);
+}

@@ -2,25 +2,21 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#09090b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        dark: {
-                            bg: '#09090b',
-                            surface: '#18181b',
-                            border: '#27272a',
-                            card: '#1c1c1f',
-                        },
-                        accent: '#3b82f6'
-                    },
                     fontFamily: {
-                        sans: ['system-ui', '-apple-system', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace']
                     }
                 }
@@ -30,36 +26,94 @@
     <link rel="stylesheet" href="/static/css/style.css">
     {% block head %}{% endblock %}
 </head>
-<body class="bg-dark-bg text-zinc-100 min-h-screen font-sans">
+<body class="bg-[#0a0a0b] text-zinc-100 min-h-screen font-sans antialiased">
+    <!-- Telegram Popup -->
     {% include 'components/popup.html' %}
 
-    <nav class="border-b border-dark-border bg-dark-surface/80 backdrop-blur-sm sticky top-0 z-40">
+    <!-- Top Navigation -->
+    <nav class="nav-bar sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2">
-                <span class="text-lg font-bold tracking-tight">
-                    <span class="text-accent">OXYCODE</span> BOT HOST
-                </span>
-                <span class="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono">v1.0</span>
-            </a>
             <div class="flex items-center gap-3">
-                <a href="/" class="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Dashboard</a>
-                <a href="/create" class="text-sm bg-accent hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">+ New Bot</a>
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="sm:hidden p-2 -ml-2 text-zinc-400 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <a href="/" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-base tracking-tight hidden sm:block">
+                        OXYCODE <span class="text-blue-400">HOST</span>
+                    </span>
+                </a>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- User Info -->
+                <div class="hidden sm:flex items-center gap-2 text-xs text-zinc-500 bg-zinc-900/50 px-3 py-1.5 rounded-lg">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span id="user-name">{{ user_name }}</span>
+                </div>
+
+                <!-- New Bot Button -->
+                <a href="/create" class="btn-create">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span class="hidden sm:inline">New Bot</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden sm:hidden border-t border-white/5 px-4 py-3 space-y-1">
+            <a href="/" class="mobile-menu-item">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Dashboard
+            </a>
+            <div class="flex items-center gap-2 px-3 py-2 text-xs text-zinc-500">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span>{{ user_name }}</span>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-5 pb-20 sm:pb-5">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="border-t border-dark-border mt-8">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between text-xs text-zinc-500">
-            <span>OXYCODE BOT HOST - Lightweight Termux Hosting</span>
-            <a href="https://t.me/OXYCODEAI" target="_blank" class="hover:text-accent transition-colors">Join Telegram</a>
+    <!-- Mobile Bottom Nav -->
+    <nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-[#0a0a0b]/95 backdrop-blur-xl border-t border-white/5 z-40 safe-bottom">
+        <div class="flex items-center justify-around h-14">
+            <a href="/" class="bottom-nav-item {% if request.path == '/' %}active{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span>Home</span>
+            </a>
+            <a href="/create" class="bottom-nav-item">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>New Bot</span>
+            </a>
         </div>
-    </footer>
+    </nav>
 
     <script src="/static/js/popup.js"></script>
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
