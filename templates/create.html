@@ -35,66 +35,76 @@
             </div>
 
             {% if not editing %}
-            <!-- Source Type Tabs -->
+            <!-- Source Cards -->
             <div>
-                <label class="input-label">Source</label>
-                <div class="tab-group">
-                    <button type="button" onclick="switchTab('github')" class="tab-item active" id="tab-github">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                <label class="input-label mb-3">How would you like to create?</label>
+                <div class="grid grid-cols-1 gap-3">
+                    <!-- GitHub Card -->
+                    <button type="button" onclick="selectSource('github')" id="card-github"
+                            class="source-card active">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(168, 85, 247, 0.15);">
+                            <svg class="w-5 h-5" style="color: #a855f7;" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <div class="text-sm font-semibold" style="color: #f4f4f5;">Import from GitHub</div>
+                            <div class="text-xs" style="color: #71717a;">Clone a repo and auto-detect runtime</div>
+                        </div>
+                        <svg class="w-5 h-5 source-arrow" style="color: #52525b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        GitHub
                     </button>
-                    <button type="button" onclick="switchTab('paste')" class="tab-item" id="tab-paste">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+
+                    <!-- Create File Card -->
+                    <button type="button" onclick="openCreateFileModal()" id="card-paste"
+                            class="source-card">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(34, 197, 94, 0.15);">
+                            <svg class="w-5 h-5" style="color: #22c55e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <div class="text-sm font-semibold" style="color: #f4f4f5;">Create File</div>
+                            <div class="text-xs" style="color: #71717a;">Write code directly in the browser</div>
+                        </div>
+                        <svg class="w-5 h-5 source-arrow" style="color: #52525b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        Paste Code
                     </button>
-                    <button type="button" onclick="switchTab('upload')" class="tab-item" id="tab-upload">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+
+                    <!-- Upload Card -->
+                    <button type="button" onclick="selectSource('upload')" id="card-upload"
+                            class="source-card">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(59, 130, 246, 0.15);">
+                            <svg class="w-5 h-5" style="color: #3b82f6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <div class="text-sm font-semibold" style="color: #f4f4f5;">Upload Files</div>
+                            <div class="text-xs" style="color: #71717a;">Upload .py, .js, .zip files</div>
+                        </div>
+                        <svg class="w-5 h-5 source-arrow" style="color: #52525b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        Upload
-                    </button>
-                    <button type="button" onclick="switchTab('blank')" class="tab-item" id="tab-blank">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Blank
                     </button>
                 </div>
             </div>
 
-            <!-- GitHub Tab -->
-            <div id="content-github">
+            <!-- GitHub Form -->
+            <div id="source-github" class="source-form">
                 <label class="input-label">Repository URL</label>
                 <input type="url" name="repo_url" class="input-field" placeholder="https://github.com/user/repo"
                        id="repo-url-input">
                 <p class="input-hint">Paste any public GitHub repo URL. Runtime and dependencies auto-detected.</p>
             </div>
 
-            <!-- Paste Code Tab -->
-            <div id="content-paste" class="hidden">
-                <label class="input-label">Main File Code</label>
-                <textarea name="code_content" rows="10" class="input-field font-mono text-xs"
-                          placeholder="# Paste your bot code here..." id="code-paste-input"></textarea>
-                <p class="input-hint">Paste your main bot code. A requirements.txt will be created for you.</p>
-
-                <div class="mt-3">
-                    <label class="input-label">Runtime</label>
-                    <select name="runtime" class="input-field">
-                        <option value="python">Python</option>
-                        <option value="node">Node.js</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Upload Tab -->
-            <div id="content-upload" class="hidden">
+            <!-- Upload Form -->
+            <div id="source-upload" class="source-form hidden">
                 <label class="input-label">Upload Files</label>
                 <div class="upload-dropzone" id="upload-zone">
-                    <input type="file" name="files" id="file-input" multiple 
+                    <input type="file" name="files" id="file-input" multiple
                            accept=".py,.js,.ts,.json,.txt,.env,.yml,.yaml,.toml,.cfg,.ini,.sh,.zip,.rar">
                     <svg class="w-10 h-10 mx-auto mb-3" style="color: #52525b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -102,7 +112,7 @@
                     <p class="text-sm mb-1" style="color: #d4d4d8;">Tap to select files</p>
                     <p class="text-xs" style="color: #71717a;">Supports .py, .js, .json, .zip and more</p>
                 </div>
-                
+
                 <div id="file-list" class="mt-3 space-y-2 hidden"></div>
 
                 <div class="mt-3">
@@ -113,16 +123,6 @@
                     </select>
                 </div>
                 <p class="input-hint">Upload your bot files. Main file auto-detected or set in editor.</p>
-            </div>
-
-            <!-- Blank Tab -->
-            <div id="content-blank" class="hidden">
-                <label class="input-label">Runtime</label>
-                <select name="blank_runtime" class="input-field">
-                    <option value="python">Python</option>
-                    <option value="node">Node.js</option>
-                </select>
-                <p class="input-hint">Creates a blank project with a starter file.</p>
             </div>
             {% endif %}
 
@@ -146,19 +146,108 @@
         </form>
     </div>
 </div>
+
+<!-- Create File Modal -->
+<div id="create-file-modal" class="fixed inset-0 z-[80] hidden">
+    <div class="absolute inset-0 bg-black/70" onclick="closeCreateFileModal()"></div>
+    <div class="absolute inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg bg-[#111113] border border-white/[0.08] rounded-2xl overflow-hidden flex flex-col" style="max-height: 90vh;">
+        <div class="flex items-center justify-between p-4 border-b border-white/[0.06]">
+            <h2 class="text-base font-semibold" style="color: #f4f4f5;">Create New File</h2>
+            <button onclick="closeCreateFileModal()" class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: #71717a;">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="p-4 space-y-4 flex-1 overflow-y-auto">
+            <div>
+                <label class="input-label">Filename</label>
+                <input type="text" id="modal-filename" class="input-field" placeholder="main.py" required>
+                <p class="input-hint">Include the extension (.py, .js, .json)</p>
+            </div>
+            <div>
+                <label class="input-label">Runtime</label>
+                <select id="modal-runtime" class="input-field">
+                    <option value="python">Python</option>
+                    <option value="node">Node.js</option>
+                </select>
+            </div>
+            <div>
+                <label class="input-label">Code</label>
+                <textarea id="modal-code" rows="12" class="input-field font-mono text-xs" placeholder="# Paste your code here..."></textarea>
+            </div>
+        </div>
+        <div class="flex gap-3 p-4 border-t border-white/[0.06]">
+            <button onclick="closeCreateFileModal()" class="btn-secondary flex-1">Cancel</button>
+            <button onclick="submitCreateFile()" class="btn-primary flex-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Create & Deploy
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-function switchTab(tab) {
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
+let selectedSource = 'github';
 
-    document.getElementById('content-github').classList.add('hidden');
-    document.getElementById('content-paste').classList.add('hidden');
-    document.getElementById('content-upload').classList.add('hidden');
-    document.getElementById('content-blank').classList.add('hidden');
-    document.getElementById('content-' + tab).classList.remove('hidden');
+function selectSource(source) {
+    selectedSource = source;
+    document.querySelectorAll('.source-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('card-' + source).classList.add('active');
+
+    document.getElementById('source-github').classList.add('hidden');
+    document.getElementById('source-upload').classList.add('hidden');
+
+    if (source === 'github') {
+        document.getElementById('source-github').classList.remove('hidden');
+    } else if (source === 'upload') {
+        document.getElementById('source-upload').classList.remove('hidden');
+    }
+}
+
+function openCreateFileModal() {
+    document.getElementById('create-file-modal').classList.remove('hidden');
+    document.getElementById('modal-filename').focus();
+}
+
+function closeCreateFileModal() {
+    document.getElementById('create-file-modal').classList.add('hidden');
+}
+
+function submitCreateFile() {
+    const name = document.querySelector('input[name="name"]').value.trim();
+    const filename = document.getElementById('modal-filename').value.trim();
+    const runtime = document.getElementById('modal-runtime').value;
+    const code = document.getElementById('modal-code').value;
+
+    if (!name) { showToast('Bot name is required', 'error'); return; }
+    if (!filename) { showToast('Filename is required', 'error'); return; }
+    if (!code.trim()) { showToast('Code is required', 'error'); return; }
+
+    fetch('/api/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: name,
+            source_type: 'paste',
+            filename: filename,
+            runtime: runtime,
+            code_content: code
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/';
+        } else {
+            showToast(data.error || 'Deploy failed', 'error');
+        }
+    })
+    .catch(() => showToast('Connection error', 'error'));
 }
 
 // File upload handling
@@ -190,20 +279,23 @@ if (fileInput) {
 
 function handleFiles(files) {
     if (files.length === 0) return;
-    
+
     fileList.innerHTML = '';
     fileList.classList.remove('hidden');
-    
+
     Array.from(files).forEach(file => {
         const div = document.createElement('div');
         div.className = 'file-item-upload';
-        div.innerHTML = `
-            <svg class="w-4 h-4 flex-shrink-0" style="color: #60a5fa;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <span class="text-sm flex-1 truncate" style="color: #d4d4d8;">${file.name}</span>
-            <span class="text-xs" style="color: #71717a;">${formatSize(file.size)}</span>
-        `;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'text-sm flex-1 truncate';
+        nameSpan.style.color = '#d4d4d8';
+        nameSpan.textContent = file.name;
+        const sizeSpan = document.createElement('span');
+        sizeSpan.className = 'text-xs';
+        sizeSpan.style.color = '#71717a';
+        sizeSpan.textContent = formatSize(file.size);
+        div.appendChild(nameSpan);
+        div.appendChild(sizeSpan);
         fileList.appendChild(div);
     });
 }

@@ -2,13 +2,39 @@ import subprocess
 import os
 import re
 import shutil
+from urllib.parse import urlparse
 from config import PROJECTS_DIR, CLONE_TIMEOUT
+
+ALLOWED_GIT_HOSTS = {"github.com"}
+BLOCKED_SCHEMES = {"file", "ssh", "ftp", "ftps"}
+
+
+def validate_git_url(url):
+    if not url or not url.strip():
+        return False, "URL is required"
+    url = url.strip()
+    if any(url.lower().startswith(s + "://") for s in BLOCKED_SCHEMES):
+        return False, f"URL scheme not allowed"
+    if url.startswith("git@github.com:"):
+        return True, "OK"
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https", ""):
+        return False, "Only HTTPS URLs are supported"
+    if parsed.hostname and parsed.hostname not in ALLOWED_GIT_HOSTS:
+        return False, f"Only {', '.join(ALLOWED_GIT_HOSTS)} repositories are supported"
+    if not parsed.hostname and not url.startswith("git@"):
+        return False, "Invalid URL format"
+    return True, "OK"
 
 
 def clone_repo(url, project_name):
     project_dir = os.path.join(PROJECTS_DIR, project_name)
     if os.path.exists(project_dir):
         shutil.rmtree(project_dir)
+
+    valid, msg = validate_git_url(url)
+    if not valid:
+        return False, msg
 
     try:
         result = subprocess.run(

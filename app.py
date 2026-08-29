@@ -1,21 +1,36 @@
 import os
 import json
 import subprocess
+import shutil
+import zipfile
+import tempfile
+import secrets
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 from config import (
     APP_NAME, APP_VERSION, PORT, HOST, PROJECTS_DIR, LOGS_DIR,
-    TELEGRAM_LINK, MAX_BOTS, ALLOWED_EDIT_EXT, ENV_FILE
+    TELEGRAM_LINK, MAX_BOTS, MAX_UPLOAD_SIZE_MB, ALLOWED_EDIT_EXT, ENV_FILE, SECRET_KEY_FILE
 )
 from database import (
     create_project, get_all_projects, get_project, update_project,
     delete_project, get_setting, set_setting
 )
-from process_manager import start_bot, stop_bot, restart_bot, get_bot_status
+from process_manager import start_bot, stop_bot, restart_bot, get_bot_status, cleanup_stale_processes
 from github_handler import clone_repo, detect_runtime, detect_dependencies
 from auto_installer import auto_install
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+
+def _get_secret_key():
+    if os.path.exists(SECRET_KEY_FILE):
+        with open(SECRET_KEY_FILE, "r") as f:
+            return f.read().strip()
+    key = secrets.token_hex(32)
+    with open(SECRET_KEY_FILE, "w") as f:
+        f.write(key)
+    return key
+
+app.secret_key = _get_secret_key()
+app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_SIZE_MB * 1024 * 1024
 
 
 def get_user_name():
@@ -29,6 +44,21 @@ def get_user_name():
 @app.context_processor
 def inject_user():
     return dict(user_name=get_user_name())
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("error.html", error_code=404, error_message="Page not found"), 404
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template("error.html", error_code=500, error_message="Internal server error"), 500
+
+
+@app.errorhandler(413)
+def too_large(e):
+    return jsonify({"error": f"File too large. Maximum size is {MAX_UPLOAD_SIZE_MB}MB"}), 413
 
 
 @app.route("/")
@@ -66,12 +96,12 @@ def create():
                 return render_template("create.html", error=msg)
 
             runtime, main_file = detect_runtime(name)
-            project_id = create_project(name, repo_url, runtime, main_file)
+            project_id = create_project(name, repo_url, runtime, main_file, source_type="github")
 
             deps = detect_dependencies(name)
             warnings = []
             if deps[runtime]:
-                success, msg = auto_install(name, runtime)
+                success, msg = auto_install(name)
                 if not success:
                     warnings.append(msg)
 
@@ -97,7 +127,7 @@ def create():
                 with open(os.path.join(project_dir, "package.json"), "w") as f:
                     json.dump({"name": name, "version": "1.0.0", "main": main_file}, f, indent=2)
 
-            create_project(name, "", runtime, main_file)
+            create_project(name, "", runtime, main_file, source_type="paste")
             return redirect(url_for("dashboard"))
 
         # File upload
@@ -118,20 +148,25 @@ def create():
                 ext = os.path.splitext(filename)[1].lower()
 
                 if ext == '.zip':
-                    import zipfile
-                    import tempfile
                     with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
                         f.save(tmp.name)
                         tmp_path = tmp.name
                     try:
                         with zipfile.ZipFile(tmp_path, 'r') as zip_ref:
-                            zip_ref.extractall(project_dir)
+                            for member in zip_ref.infolist():
+                                member_path = os.path.normpath(os.path.join(project_dir, member.filename))
+                                if not member_path.startswith(os.path.abspath(project_dir)):
+                                    raise ValueError("Zip contains path traversal")
+                                zip_ref.extract(member, project_dir)
                         saved_files.append(filename)
                     except zipfile.BadZipFile:
                         os.unlink(tmp_path)
-                        import shutil
                         shutil.rmtree(project_dir, ignore_errors=True)
                         return render_template("create.html", error="Invalid zip file")
+                    except ValueError:
+                        os.unlink(tmp_path)
+                        shutil.rmtree(project_dir, ignore_errors=True)
+                        return render_template("create.html", error="Zip contains unsafe paths")
                     finally:
                         os.unlink(tmp_path)
                 elif ext in ALLOWED_UPLOAD_EXT:
@@ -162,7 +197,7 @@ def create():
                     with open(pkg_path, "w") as pf:
                         json.dump({"name": name, "version": "1.0.0", "main": main_file}, pf, indent=2)
 
-            create_project(name, "", runtime, main_file)
+            create_project(name, "", runtime, main_file, source_type="upload")
             return redirect(url_for("dashboard"))
 
         # Blank project
@@ -182,10 +217,77 @@ def create():
             with open(os.path.join(project_dir, "package.json"), "w") as f:
                 json.dump({"name": name, "version": "1.0.0", "main": main_file}, f, indent=2)
 
-        create_project(name, "", runtime, main_file)
+        create_project(name, "", runtime, main_file, source_type="blank")
         return redirect(url_for("dashboard"))
 
     return render_template("create.html")
+
+
+@app.route("/api/deploy", methods=["POST"])
+def api_deploy():
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    name = data.get("name", "").strip()
+    if not name:
+        return jsonify({"error": "Bot name is required"}), 400
+
+    if not all(c.isalnum() or c in "-_" for c in name):
+        return jsonify({"error": "Name can only contain letters, numbers, - and _"}), 400
+
+    if len(get_all_projects()) >= MAX_BOTS:
+        return jsonify({"error": f"Maximum {MAX_BOTS} bots reached"}), 400
+
+    project_dir = os.path.join(PROJECTS_DIR, name)
+    if os.path.exists(project_dir):
+        return jsonify({"error": "A bot with this name already exists"}), 400
+
+    source_type = data.get("source_type", "paste")
+
+    if source_type == "github":
+        repo_url = data.get("repo_url", "").strip()
+        if not repo_url:
+            return jsonify({"error": "Repository URL is required"}), 400
+
+        success, msg = clone_repo(repo_url, name)
+        if not success:
+            return jsonify({"error": msg}), 400
+
+        runtime, main_file = detect_runtime(name)
+        project_id = create_project(name, repo_url, runtime, main_file, source_type="github")
+
+        deps = detect_dependencies(name)
+        if deps[runtime]:
+            success, msg = auto_install(name)
+
+        return jsonify({"success": True, "project_id": project_id, "message": "Bot deployed"})
+
+    elif source_type == "paste":
+        code_content = data.get("code_content", "").strip()
+        filename = data.get("filename", "").strip()
+        runtime = data.get("runtime", "python")
+
+        if not code_content:
+            return jsonify({"error": "Code content is required"}), 400
+
+        os.makedirs(project_dir, exist_ok=True)
+
+        if runtime == "python":
+            main_file = filename if filename and filename.endswith(".py") else "main.py"
+            with open(os.path.join(project_dir, main_file), "w") as f:
+                f.write(code_content)
+        else:
+            main_file = filename if filename and filename.endswith(".js") else "index.js"
+            with open(os.path.join(project_dir, main_file), "w") as f:
+                f.write(code_content)
+            with open(os.path.join(project_dir, "package.json"), "w") as f:
+                json.dump({"name": name, "version": "1.0.0", "main": main_file}, f, indent=2)
+
+        project_id = create_project(name, "", runtime, main_file, source_type="paste")
+        return jsonify({"success": True, "project_id": project_id, "message": "Bot deployed"})
+
+    return jsonify({"error": "Invalid source type"}), 400
 
 
 @app.route("/bot/<int:project_id>/start", methods=["POST"])
@@ -225,12 +327,10 @@ def bot_delete(project_id):
 
     project_dir = os.path.join(PROJECTS_DIR, project["name"])
     if os.path.exists(project_dir):
-        import shutil
         shutil.rmtree(project_dir, ignore_errors=True)
 
     log_dir = os.path.join(LOGS_DIR, project["name"])
     if os.path.exists(log_dir):
-        import shutil
         shutil.rmtree(log_dir, ignore_errors=True)
 
     delete_project(project_id)
@@ -266,7 +366,7 @@ def editor(project_id, filepath=None):
 
     files = []
     for root, dirs, filenames in os.walk(project_dir):
-        dirs[:] = [d for d in dirs if d not in ("node_modules", "__pycache__", ".git", "venv")]
+        dirs[:] = [d for d in dirs if d not in ("node_modules", "__pycache__", ".git", "venv", "libs")]
         level = root.replace(project_dir, "").count(os.sep)
         if level > 3:
             continue
@@ -281,6 +381,8 @@ def editor(project_id, filepath=None):
     current_file = filepath
     if filepath:
         file_path = os.path.join(project_dir, filepath)
+        if not os.path.abspath(file_path).startswith(os.path.abspath(project_dir)):
+            return redirect(url_for("editor", project_id=project_id))
         if os.path.isfile(file_path):
             try:
                 with open(file_path, "r", errors="replace") as f:
@@ -346,6 +448,34 @@ def read_file():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/editor/create-file", methods=["POST"])
+def create_file():
+    data = request.json
+    project_id = data.get("project_id")
+    filename = data.get("filename", "").strip()
+
+    project = get_project(project_id)
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+
+    if not filename or not all(c.isalnum() or c in "-_." for c in filename):
+        return jsonify({"error": "Invalid filename"}), 400
+
+    file_path = os.path.join(PROJECTS_DIR, project["name"], filename)
+    project_dir = os.path.join(PROJECTS_DIR, project["name"])
+
+    if not os.path.abspath(file_path).startswith(os.path.abspath(project_dir)):
+        return jsonify({"error": "Invalid path"}), 400
+
+    if os.path.exists(file_path):
+        return jsonify({"error": "File already exists"}), 400
+
+    with open(file_path, "w") as f:
+        f.write("")
+
+    return jsonify({"success": True, "filepath": filename})
+
+
 @app.route("/logs/<int:project_id>")
 def logs(project_id):
     project = get_project(project_id)
@@ -361,7 +491,10 @@ def get_logs(project_id):
         return jsonify({"error": "Project not found"}), 404
 
     log_file = os.path.join(LOGS_DIR, project["name"], "output.log")
-    lines = int(request.args.get("lines", 200))
+    try:
+        lines = min(int(request.args.get("lines", 200)), 5000)
+    except (ValueError, TypeError):
+        lines = 200
 
     if not os.path.exists(log_file):
         return jsonify({"logs": ""})
@@ -469,6 +602,18 @@ def system_stats():
 if __name__ == "__main__":
     os.makedirs(PROJECTS_DIR, exist_ok=True)
     os.makedirs(LOGS_DIR, exist_ok=True)
-    print(f"\n  {APP_NAME} v{APP_VERSION}")
-    print(f"  http://{HOST}:{PORT}\n")
-    app.run(host=HOST, port=PORT, debug=False)
+    cleanup_stale_processes()
+
+    port = PORT
+    max_retries = 10
+    for i in range(max_retries):
+        try:
+            print(f"\n  {APP_NAME} v{APP_VERSION}")
+            print(f"  http://{HOST}:{port}\n")
+            app.run(host=HOST, port=port, debug=False)
+            break
+        except OSError:
+            port += 1
+            if port > PORT + max_retries:
+                print(f"\n  Error: No available port in range {PORT}-{PORT + max_retries}")
+                break

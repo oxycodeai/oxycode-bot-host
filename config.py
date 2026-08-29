@@ -1,7 +1,7 @@
 import os
 
 APP_NAME = "OXYCODE BOT HOST"
-APP_VERSION = "1.0.0"
+APP_VERSION = "2.0.0"
 PORT = 5000
 HOST = "127.0.0.1"
 
@@ -9,12 +9,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECTS_DIR = os.path.join(BASE_DIR, "projects")
 DB_PATH = os.path.join(BASE_DIR, "bot_host.db")
 LOGS_DIR = os.path.join(BASE_DIR, "logs")
+SECRET_KEY_FILE = os.path.join(BASE_DIR, ".secret_key")
 
 TELEGRAM_LINK = "https://t.me/OXYCODEAI"
 TELEGRAM_CHANNEL = "@OXYCODEAI"
 
 MAX_BOTS = 50
+MAX_CONCURRENT_BOTS = 10
 MAX_UPLOAD_SIZE_MB = 500
+MAX_LOG_SIZE_KB = 50
 CLONE_TIMEOUT = 120
 
 PYTHON_EXT = (".py",)

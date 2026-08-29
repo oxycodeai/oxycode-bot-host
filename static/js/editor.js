@@ -147,6 +147,33 @@ function saveFile() {
     });
 }
 
+function createNewFile() {
+    const filename = prompt('Enter filename (e.g., bot.py, config.json):');
+    if (!filename) return;
+
+    if (!/^[a-zA-Z0-9._-]+$/.test(filename)) {
+        showToast('Invalid filename', 'error');
+        return;
+    }
+
+    fetch('/api/editor/create-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: window.PROJECT_ID, filename: filename })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('File created', 'success');
+            openFile(data.filepath);
+            setTimeout(() => location.reload(), 500);
+        } else {
+            showToast(data.error || 'Failed to create file', 'error');
+        }
+    })
+    .catch(() => showToast('Connection error', 'error'));
+}
+
 function showToast(message, type) {
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
@@ -158,7 +185,13 @@ function showToast(message, type) {
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `<div class="flex items-center gap-2">${icons[type] || ''}<span>${message}</span></div>`;
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'flex items-center gap-2';
+    iconDiv.innerHTML = icons[type] || '';
+    const msgSpan = document.createElement('span');
+    msgSpan.textContent = message;
+    iconDiv.appendChild(msgSpan);
+    toast.appendChild(iconDiv);
     document.body.appendChild(toast);
 
     setTimeout(() => {

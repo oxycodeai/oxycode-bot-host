@@ -536,3 +536,41 @@ a {
         padding-bottom: env(safe-area-inset-bottom);
     }
 }
+
+/* === Source Cards === */
+.source-card {
+    @apply flex items-center gap-3 p-4 rounded-xl transition-all duration-200 text-left w-full;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.source-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.source-card.active {
+    background: rgba(168, 85, 247, 0.08);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.source-card.active .source-arrow {
+    color: #a855f7;
+}
+
+/* === File Item Upload === */
+.file-item-upload {
+    @apply flex items-center gap-2 px-3 py-2 rounded-lg text-sm;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* === Source Form Transition === */
+.source-form {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

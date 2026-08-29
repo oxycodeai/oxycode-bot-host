@@ -64,8 +64,11 @@
     <div class="flex gap-3" style="height: {% if is_fullscreen %}calc(100vh - 80px){% else %}calc(100vh - 180px){% endif %}">
         <!-- File Tree -->
         <div id="file-tree-panel" class="w-52 flex-shrink-0 bg-[#111113] border border-white/[0.04] rounded-xl overflow-hidden hidden sm:block">
-            <div class="p-3 border-b border-white/[0.04]">
+            <div class="p-3 border-b border-white/[0.04] flex items-center justify-between">
                 <span class="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Files</span>
+                <button onclick="createNewFile()" class="text-[11px] px-2 py-1 rounded-md hover:bg-white/[0.06] transition-colors" style="color: #a855f7;">
+                    + New
+                </button>
             </div>
             <div class="overflow-y-auto p-2 space-y-0.5" id="file-tree">
                 {% for file in files %}
@@ -112,11 +115,16 @@
     <div class="absolute left-0 top-0 bottom-0 w-64 bg-[#111113] border-r border-white/[0.04] overflow-y-auto">
         <div class="p-3 border-b border-white/[0.04] flex items-center justify-between">
             <span class="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Files</span>
-            <button onclick="toggleFileTree()" class="btn-icon-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="createNewFile()" class="text-[11px] px-2 py-1 rounded-md hover:bg-white/[0.06] transition-colors" style="color: #a855f7;">
+                    + New
+                </button>
+                <button onclick="toggleFileTree()" class="btn-icon-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         <div class="p-2 space-y-0.5">
             {% for file in files %}
