@@ -32,7 +32,7 @@ pkg update -y && pkg install git python -y && git clone https://github.com/oxyco
 **After Phone Off / Quick Start:**
 
 ```
-cd ~/oxycode-bot-host && bash start.sh
+cd ~/oxycode-bot-host && git pull && bash start.sh
 ```
 
 Then open `http://127.0.0.1:5000` in your browser.
@@ -96,7 +96,7 @@ Edit `config.py` to change settings:
 
 - **Backend:** Python, Flask, SQLite
 - **Frontend:** Tailwind CSS, CodeMirror, Vanilla JS
-- **Process:** subprocess, psutil
+- **Process:** subprocess, /proc/ native methods
 
 ## License
 
