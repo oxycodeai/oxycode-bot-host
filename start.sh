@@ -8,10 +8,10 @@ echo "  ██║   ██║██╔══██╗██║   ██║ █�
 echo "  ╚██████╔╝██║  ██║╚██████╔╝██╔╝ ██╗██║███████╗███████║"
 echo "   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚══════╝"
 echo ""
-echo "  BOT HOST v1.0.0"
+echo "  BOT HOST v2.1.0"
 echo ""
 
-pip install flask requests
+pip install flask requests psutil 2>/dev/null
 
 mkdir -p projects logs
 

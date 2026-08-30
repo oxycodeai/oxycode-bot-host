@@ -1,3 +1,4 @@
-flask>=3.0
-requests>=2.31
-flask-wtf>=1.2
+flask
+requests
+flask-wtf
+psutil

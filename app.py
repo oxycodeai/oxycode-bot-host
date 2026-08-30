@@ -5,7 +5,9 @@ import shutil
 import zipfile
 import tempfile
 import secrets
-from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
+import logging
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory, session
 from config import (
     APP_NAME, APP_VERSION, PORT, HOST, PROJECTS_DIR, LOGS_DIR,
     TELEGRAM_LINK, MAX_BOTS, MAX_UPLOAD_SIZE_MB, ALLOWED_EDIT_EXT, ENV_FILE, SECRET_KEY_FILE
@@ -17,6 +19,8 @@ from database import (
 from process_manager import start_bot, stop_bot, restart_bot, get_bot_status, cleanup_stale_processes
 from github_handler import clone_repo, detect_runtime, detect_dependencies
 from auto_installer import auto_install
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 app = Flask(__name__)
 
@@ -32,18 +36,89 @@ def _get_secret_key():
 app.secret_key = _get_secret_key()
 app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_SIZE_MB * 1024 * 1024
 
+_user_name = None
 
 def get_user_name():
-    try:
-        result = subprocess.run(["whoami"], capture_output=True, text=True, timeout=2)
-        return result.stdout.strip() or "user"
-    except:
-        return "user"
+    global _user_name
+    if _user_name is None:
+        try:
+            result = subprocess.run(["whoami"], capture_output=True, text=True, timeout=2)
+            _user_name = result.stdout.strip() or "user"
+        except:
+            _user_name = "user"
+    return _user_name
+
+
+AUTH_PASSWORD_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".auth_password")
+
+def _get_auth_password():
+    if os.path.exists(AUTH_PASSWORD_FILE):
+        with open(AUTH_PASSWORD_FILE, "r") as f:
+            return f.read().strip()
+    return None
+
+def _set_auth_password(password):
+    with open(AUTH_PASSWORD_FILE, "w") as f:
+        f.write(password)
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        password = _get_auth_password()
+        if not password:
+            return f(*args, **kwargs)
+        if session.get("authenticated"):
+            return f(*args, **kwargs)
+        return redirect(url_for("login_page"))
+    return decorated
 
 
 @app.context_processor
 def inject_user():
     return dict(user_name=get_user_name())
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login_page():
+    password = _get_auth_password()
+    if not password:
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        entered = request.form.get("password", "")
+        if entered == password:
+            session["authenticated"] = True
+            return redirect(url_for("dashboard"))
+        return render_template("login.html", error="Wrong password")
+
+    return render_template("login.html", error=None)
+
+
+@app.route("/setup-password", methods=["GET", "POST"])
+def setup_password():
+    if _get_auth_password():
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        password = request.form.get("password", "").strip()
+        confirm = request.form.get("confirm", "").strip()
+        if not password:
+            return render_template("setup_password.html", error="Password required")
+        if len(password) < 4:
+            return render_template("setup_password.html", error="Password must be at least 4 characters")
+        if password != confirm:
+            return render_template("setup_password.html", error="Passwords don't match")
+        _set_auth_password(password)
+        session["authenticated"] = True
+        return redirect(url_for("dashboard"))
+
+    return render_template("setup_password.html", error=None)
+
+
+@app.route("/logout")
+def logout():
+    session.pop("authenticated", None)
+    return redirect(url_for("login_page"))
 
 
 @app.errorhandler(404)
@@ -62,6 +137,7 @@ def too_large(e):
 
 
 @app.route("/")
+@login_required
 def dashboard():
     projects = get_all_projects()
     for p in projects:
@@ -71,6 +147,7 @@ def dashboard():
 
 
 @app.route("/create", methods=["GET", "POST"])
+@login_required
 def create():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -229,6 +306,7 @@ def create():
 
 
 @app.route("/api/deploy", methods=["POST"])
+@login_required
 def api_deploy():
     data = request.json
     if not data:
@@ -301,24 +379,28 @@ def api_deploy():
 
 
 @app.route("/bot/<int:project_id>/start", methods=["POST"])
+@login_required
 def bot_start(project_id):
     success, msg = start_bot(project_id)
     return jsonify({"success": success, "message": msg})
 
 
 @app.route("/bot/<int:project_id>/stop", methods=["POST"])
+@login_required
 def bot_stop(project_id):
     success, msg = stop_bot(project_id)
     return jsonify({"success": success, "message": msg})
 
 
 @app.route("/bot/<int:project_id>/restart", methods=["POST"])
+@login_required
 def bot_restart(project_id):
     success, msg = restart_bot(project_id)
     return jsonify({"success": success, "message": msg})
 
 
 @app.route("/bot/<int:project_id>/status")
+@login_required
 def bot_status(project_id):
     status = get_bot_status(project_id)
     if status is None:
@@ -327,6 +409,7 @@ def bot_status(project_id):
 
 
 @app.route("/bot/<int:project_id>/delete", methods=["POST"])
+@login_required
 def bot_delete(project_id):
     project = get_project(project_id)
     if not project:
@@ -348,6 +431,7 @@ def bot_delete(project_id):
 
 
 @app.route("/bot/<int:project_id>/edit", methods=["GET", "POST"])
+@login_required
 def bot_edit(project_id):
     project = get_project(project_id)
     if not project:
@@ -365,6 +449,7 @@ def bot_edit(project_id):
 
 @app.route("/editor/<int:project_id>")
 @app.route("/editor/<int:project_id>/<path:filepath>")
+@login_required
 def editor(project_id, filepath=None):
     project = get_project(project_id)
     if not project:
@@ -408,6 +493,7 @@ def editor(project_id, filepath=None):
 
 
 @app.route("/api/editor/save", methods=["POST"])
+@login_required
 def save_file():
     data = request.json
     project_id = data.get("project_id")
@@ -432,6 +518,7 @@ def save_file():
 
 
 @app.route("/api/editor/read", methods=["POST"])
+@login_required
 def read_file():
     data = request.json
     project_id = data.get("project_id")
@@ -459,6 +546,7 @@ def read_file():
 
 
 @app.route("/api/editor/create-file", methods=["POST"])
+@login_required
 def create_file():
     data = request.json
     project_id = data.get("project_id")
@@ -487,6 +575,7 @@ def create_file():
 
 
 @app.route("/logs/<int:project_id>")
+@login_required
 def logs(project_id):
     project = get_project(project_id)
     if not project:
@@ -495,6 +584,7 @@ def logs(project_id):
 
 
 @app.route("/api/logs/<int:project_id>")
+@login_required
 def get_logs(project_id):
     project = get_project(project_id)
     if not project:
@@ -519,6 +609,7 @@ def get_logs(project_id):
 
 
 @app.route("/api/logs/<int:project_id>/clear", methods=["POST"])
+@login_required
 def clear_logs(project_id):
     project = get_project(project_id)
     if not project:
@@ -533,6 +624,7 @@ def clear_logs(project_id):
 
 
 @app.route("/env/<int:project_id>", methods=["GET", "POST"])
+@login_required
 def env_editor(project_id):
     project = get_project(project_id)
     if not project:
@@ -556,6 +648,7 @@ def env_editor(project_id):
 
 
 @app.route("/terminal/<int:project_id>")
+@login_required
 def terminal(project_id):
     project = get_project(project_id)
     if not project:
@@ -564,6 +657,7 @@ def terminal(project_id):
 
 
 @app.route("/api/terminal/<int:project_id>", methods=["POST"])
+@login_required
 def terminal_exec(project_id):
     project = get_project(project_id)
     if not project:
@@ -597,50 +691,65 @@ def terminal_exec(project_id):
 
 @app.route("/api/stats")
 def system_stats():
-    cpu = 0
-    try:
-        with open("/proc/stat") as f:
-            line = f.readline()
-            vals = list(map(int, line.split()[1:]))
-            idle = vals[3]
-            total = sum(vals)
-            cpu = round((1 - idle / total) * 100, 1) if total > 0 else 0
-    except:
-        pass
-
+    cpu = 0.0
     mem_used = 0
     mem_total = 0
-    try:
-        with open("/proc/meminfo") as f:
-            for line in f:
-                if line.startswith("MemTotal:"):
-                    mem_total = int(line.split()[1])
-                elif line.startswith("MemAvailable:"):
-                    mem_available = int(line.split()[1])
-                    mem_used = mem_total - mem_available
-    except:
-        pass
-
     disk_used = 0
     disk_total = 0
+
+    # Try psutil first (cross-platform)
     try:
-        result = subprocess.run(["df", "-B1", "/"], capture_output=True, text=True)
-        lines = result.stdout.strip().split("\n")
-        if len(lines) > 1:
-            parts = lines[1].split()
-            disk_total = int(parts[1])
-            disk_used = int(parts[2])
-    except:
+        import psutil
+        cpu = psutil.cpu_percent(interval=0.1)
+        mem = psutil.virtual_memory()
+        mem_used = mem.used
+        mem_total = mem.total
+        disk = psutil.disk_usage("/")
+        disk_used = disk.used
+        disk_total = disk.total
+    except ImportError:
+        # Fallback to /proc on Linux/Termux
+        try:
+            with open("/proc/stat") as f:
+                line = f.readline()
+                vals = list(map(int, line.split()[1:]))
+                idle = vals[3]
+                total = sum(vals)
+                cpu = round((1 - idle / total) * 100, 1) if total > 0 else 0
+        except:
+            pass
+
+        try:
+            with open("/proc/meminfo") as f:
+                for line in f:
+                    if line.startswith("MemTotal:"):
+                        mem_total = int(line.split()[1]) * 1024
+                    elif line.startswith("MemAvailable:"):
+                        mem_available = int(line.split()[1]) * 1024
+                        mem_used = mem_total - mem_available
+        except:
+            pass
+
+        try:
+            result = subprocess.run(["df", "-B1", "/"], capture_output=True, text=True, timeout=5)
+            lines = result.stdout.strip().split("\n")
+            if len(lines) > 1:
+                parts = lines[1].split()
+                disk_total = int(parts[1])
+                disk_used = int(parts[2])
+        except:
+            pass
+    except Exception:
         pass
 
     projects = get_all_projects()
     running = sum(1 for p in projects if p["status"] == "running")
 
     return jsonify({
-        "cpu_percent": cpu,
+        "cpu_percent": round(cpu, 1),
         "memory_percent": round(mem_used / mem_total * 100, 1) if mem_total > 0 else 0,
-        "memory_used_mb": round(mem_used / 1024),
-        "memory_total_mb": round(mem_total / 1024),
+        "memory_used_mb": round(mem_used / 1024 / 1024),
+        "memory_total_mb": round(mem_total / 1024 / 1024),
         "disk_percent": round(disk_used / disk_total * 100, 1) if disk_total > 0 else 0,
         "disk_used_gb": round(disk_used / 1024 / 1024 / 1024, 1),
         "disk_total_gb": round(disk_total / 1024 / 1024 / 1024, 1),
