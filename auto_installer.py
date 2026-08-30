@@ -50,7 +50,7 @@ def _install_python(project_dir):
 def _install_node(project_dir):
     try:
         result = subprocess.run(
-            [RUNTIME_NODE, "npm", "install", "--production", "--quiet"],
+            ["npm", "install", "--production", "--quiet"],
             cwd=project_dir,
             capture_output=True, text=True, timeout=300
         )

@@ -83,11 +83,23 @@ function fetchStats() {
             const ram = document.getElementById('stat-ram');
             const disk = document.getElementById('stat-disk');
             const bots = document.getElementById('stat-bots');
+            const cpuBar = document.getElementById('cpu-bar');
+            const ramBar = document.getElementById('ram-bar');
+            const diskBar = document.getElementById('disk-bar');
 
             if (cpu) cpu.textContent = data.cpu_percent + '%';
             if (ram) ram.textContent = data.memory_used_mb + 'MB';
             if (disk) disk.textContent = data.disk_used_gb + 'GB';
             if (bots) bots.textContent = data.running_bots + '/' + data.total_projects;
+            if (cpuBar) cpuBar.style.width = data.cpu_percent + '%';
+            if (ramBar) {
+                const ramPercent = Math.min(100, (data.memory_used_mb / data.memory_total_mb) * 100);
+                ramBar.style.width = ramPercent + '%';
+            }
+            if (diskBar) {
+                const diskPercent = Math.min(100, (data.disk_used_gb / data.disk_total_gb) * 100);
+                diskBar.style.width = diskPercent + '%';
+            }
         })
         .catch(() => {});
 }

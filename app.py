@@ -555,6 +555,46 @@ def env_editor(project_id):
     return render_template("env_editor.html", project=project, content=content)
 
 
+@app.route("/terminal/<int:project_id>")
+def terminal(project_id):
+    project = get_project(project_id)
+    if not project:
+        return redirect(url_for("dashboard"))
+    return render_template("terminal.html", project=project)
+
+
+@app.route("/api/terminal/<int:project_id>", methods=["POST"])
+def terminal_exec(project_id):
+    project = get_project(project_id)
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+
+    data = request.json
+    cmd = data.get("command", "").strip()
+    if not cmd:
+        return jsonify({"error": "Command is required"}), 400
+
+    project_dir = os.path.join(PROJECTS_DIR, project["name"])
+    if not os.path.exists(project_dir):
+        return jsonify({"error": "Project directory not found"}), 404
+
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        output = result.stdout + result.stderr
+        return jsonify({"output": output, "success": result.returncode == 0})
+    except subprocess.TimeoutExpired:
+        return jsonify({"error": "Command timed out (60s limit)"}), 408
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/stats")
 def system_stats():
     cpu = 0
